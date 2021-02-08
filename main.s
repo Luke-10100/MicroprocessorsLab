@@ -10,10 +10,13 @@ main:
 	; a delay subroutine
 delay: 
 	movlw	0xff
+	movwf	0x20, A
+delayloop:
+	movlw	0xff
 	movwf	0x30, A
 	call delay1
 	decfsz	0x20, A
-	bra delay
+	bra delayloop
 	return
 delay1: 
 	movlw	0x0f
@@ -35,8 +38,6 @@ start:
 	movwf	0x06, A
 	bra 	test
 loop:
-	movlw	0xff
-	movwf	0x20, A
 	call	delay
 	movff 	0x06, PORTC
 	incf 	0x06, W, A
@@ -47,5 +48,6 @@ test:
 	cpfsgt 	0x06, A
 	bra 	loop		    ; Not yet finished goto start of loop again
 	goto 	0x0		    ; Re-run program from start
+	;test
 
 	end	main
