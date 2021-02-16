@@ -35,25 +35,28 @@ start:
 	movlw	0xff
 	movwf	TRISD, A	    ; Port d all input
 	counter equ 0x06
+	maxNum	equ 0x1F
+	wLoc	equ 0x240
+	movlb	0x02
  	movlw	0x0
-	movwf	0x06, A
-	lfsr	0, 0x140
-	lfsr	1, 0x140
+	movwf	counter, b
+	lfsr	0, wLoc
+	lfsr	1, wLoc
 	bra 	write_test
 write_loop:
 ;	call	delay
-	movf	0x06, w, a
+	movf	counter, w, b
 	movwf	POSTINC0, f, a
-	incf 	0x06, W, A
+	incf 	counter, w, b
 write_test:
-	movwf	0x06, A	    ; Test for end of loop condition
-	movlw 	0x1A	    ; Count up to this number OR
+	movwf	counter, b  ; Test for end of loop condition
+	movlw 	maxNum	    ; Count up to this number OR
 ;	movf	PORTD, W    ; Count up to input number on port D
-	cpfsgt 	0x06, A
+	cpfsgt 	counter, b
 	bra 	write_loop		    ; Not yet finished goto start of loop again
 	movlw	0x0
-	movwf	0x06, A
-	lfsr	1, 0x140
+	movwf	counter, b
+	lfsr	1, wLoc
 	goto read_test
 ;	goto 	0x0		    ; Re-run program from start
 	;test
@@ -61,16 +64,16 @@ read_loop:
 	call	delay
 	movf	POSTINC1, w, a
 	movwf	PORTC, f, a
-	incf 	0x06, W, A
+	incf 	counter, W, b
 	
 read_test:
-	movwf	0x06, A	    ; Test for end of loop condition
-	movlw 	0x1A	    ; Count up to this number OR
-	cpfsgt 	0x06, A
-	bra 	read_loop		    ; Not yet finished goto start of loop again
+	movwf	counter, b	    ; Test for end of loop condition
+	movlw 	maxNum		    ; Count up to this number OR
+	cpfsgt 	counter, b
+	bra 	read_loop	    ; Not yet finished goto start of loop again
 	movlw	0x0
-	movwf	0x06, A
-	lfsr	1, 0x140
+	movwf	counter, b
+	lfsr	1, wLoc
 	goto read_loop
 	
 	end	main
