@@ -1,7 +1,7 @@
 	#include <xc.inc>
 
 psect	code, abs
-	;Test for difference
+
 main:
 	org	0x0
 	goto	start
@@ -26,26 +26,19 @@ delay2:
 	decfsz 0x40, A
 	bra delay2
 	return
-start:
+setup: 
 	movlw 	0x0
-	movwf	TRISC, A	    ; Port C all outputs
+	movwf	TRISD, A	    ; Port C all outputs
 	movlw	0xff
-	movwf	TRISD, A	    ; Port d all input
-	movlw	0x0
-	movwf	0x06, A
-	bra 	test
-loop:
-	movlw	0xff
-	movwf	0x20, A
-	call	delay
-	movff 	0x06, PORTC
-	incf 	0x06, W, A
-test:
-	movwf	0x06, A	    ; Test for end of loop condition
-;	movlw 	0x63	    ; Count up to this number OR
-	movf	PORTD, W    ; Count up to input number on port D
-	cpfsgt 	0x06, A
-	bra 	loop		    ; Not yet finished goto start of loop again
-	goto 	0x0		    ; Re-run program from start
-
+;	movlw	0x1
+;	movwf	RD0
+	bsf	PORTD, 0, A
+	bsf	PORTD, 1, A
+	bcf	PORTD, 2, A
+	bsf	PORTD, 3, A
+	return
+start:
+	call setup
+	
+	goto start
 	end	main
