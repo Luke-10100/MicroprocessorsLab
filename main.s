@@ -1,7 +1,7 @@
 	#include <xc.inc>
 
 psect	code, abs
-	
+	;Test for difference
 main:
 	org	0x0
 	goto	start
