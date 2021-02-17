@@ -27,12 +27,13 @@ delay2:
 	bra delay2
 	return
 setup: 
-	movlw 	0x0
-	movwf	TRISD, A	    ; Port C all outputs
-	bsf	PORTD, 0, A
-	bsf	PORTD, 1, A
-	bsf	PORTD, 2, A
-	bsf	PORTD, 3, A
+	movlw 	0x0		    
+	movwf	TRISD, A	    ; Port D all outputs
+	bsf	PORTD, 0, A	    ; bit 0 = ct1
+	bsf	PORTD, 1, A	    ; bit 1 = ct2
+	bsf	PORTD, 2, A	    ; bit 2 = oe1
+	bsf	PORTD, 3, A	    ; bit 3 = oe2
+				    ; all bits start on
 	return
 clockPulse1: 
 	bcf	PORTD, 0, A
@@ -43,31 +44,31 @@ clockPulse2:
 	bsf	PORTD, 1, A
 	return
 readMem1:
-	bsf	PORTD, 3, A		; OE2 high
+;	bsf	PORTD, 3, A		; OE2 high
 	bcf	PORTD, 2, A		; OE1 low
 	call	clockPulse1		; c1 pulse
 	bsf	PORTD, 2, A		; Reset OE1
 					; c2 nothing
 	return
 readMem2: 
-    	bsf	PORTD, 2, A		; OE1 high
+;    	bsf	PORTD, 2, A		; OE1 high
 	bcf	PORTD, 3, A		; OE2 low
 	call	clockPulse2		; c2 pulse
 	bsf	PORTD, 3, A		; Reset OE2
 					; c1 nothing
 	return
 writeMem1: 
-	bsf	PORTD, 2, A		; OE1 high
-	bcf	PORTD, 3, A		; OE2 low
+;	bsf	PORTD, 2, A		; OE1 high
+;	bcf	PORTD, 3, A		; OE2 low
 	call	clockPulse1		; c1 pulse
-	bsf	PORTD, 3, A		; Reset OE2
+;	bsf	PORTD, 3, A		; Reset OE2
 					; c2 nothing
 	return
 writeMem2: 
-	bsf	PORTD, 3, A		; OE2 high
-	bcf	PORTD, 2, A		; OE1 low
+;	bsf	PORTD, 3, A		; OE2 high
+;	bcf	PORTD, 2, A		; OE1 low
 	call	clockPulse2		; c2 pulse
-	bsf	PORTD, 2, A		; Reset OE1
+;	bsf	PORTD, 2, A		; Reset OE1
 					; c1 nothing
 	return
 start:
