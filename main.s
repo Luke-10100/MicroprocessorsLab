@@ -106,25 +106,12 @@ writeMem2:
 	return
 start:
 	call	setup
-;	call	readMem1
-;	call	delay
-	movlw	0xf0			; Move value to be written to external
+	movlw	0xbb			; Move value to be written to external
 	movwf	memWrite1, B		; memory 1 to variable memWrite1
 	call	writeMem1		; Write value to external memory 1
-	call	readMem1
-;	bcf	PORTD, 2, A		; turn on output
-;	call	readMem1
-test_loop:
-;    	bcf	PORTD, 2, A		; turn on output
+	call	readMem1		; 
 
-;    	call	writeMem1		; Write value to external memory 1
-;    	bcf	PORTD, 2, A		; OE1 low
-;	call	readMem1
-;	call	writeMem1
-;	call	readMem1
-;	call	delay
-;	call	delay
-;	call	readMem2
-;	call	writeMem2
+test_loop:
+	
 	bra	test_loop
 	end	main
