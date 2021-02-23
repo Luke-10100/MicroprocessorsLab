@@ -17,7 +17,7 @@ waitloop:
 	return
 	
 delay: 
-	movlw	0xff
+	movlw	0x0f
 	movwf	0x20, A
 	call	delayloop
 	return
@@ -78,40 +78,80 @@ readMem1:
 	bcf	PORTD, 2, A		; OE1 low
 	call	wait
 	call	wait
-	movf	LATE, W, A
-;	movlw	0xff
+	movf	PORTE, W, A
 	movwf	LATC, A
 	bsf	PORTD, 2, A		; Reset OE1
 	return
 readMem2: 
 	bcf	PORTD, 3, A		; OE2 low
 	call	wait
-	movf	PORTE, A
-	movwf	PORTC, A
+	call	wait
+	movf	PORTE, W, A
+	movwf	LATC, A
 	bsf	PORTD, 3, A		; Reset OE2
 	return
 writeMem1: 
 	clrf	TRISE, A
-	movf	memWrite1, B
+	call	wait
+	movf	memWrite1, W, B
 	movwf	LATE, A
 	call	clockPulse1		; c1 pulse
+;	clrf	LATE, A
 	setf	TRISE, A
+	call	wait
 	return
 writeMem2: 
 	clrf	TRISE, A
-	movf	memWrite2, B
+	call	wait
+	movf	memWrite2, W, B
 	movwf	LATE, A
 	call	clockPulse2		; c2 pulse
+;	CLRF	LATE, A
 	setf	TRISE, A
+	call	wait
+	return
+incramentalCounter: 
+	counter	    equ	    0xb0
+	maxCount    equ	    0xff
+    	movlw	0x0
+	movwf	counter, B
+	bra 	test
+loop:
+	call	delay
+	movf	counter, W, B
+;	movwf	memWrite1, B
+;	call	writeMem1
+;	call	wait
+;	call	readMem1
+	movwf	memWrite2, B
+	call	writeMem2
+	call	wait
+	call	readMem2
+	incf 	counter, F, B
+test:
+	movwf	counter, A	    ; Test for end of loop condition
+	movlw 	maxCount	    ; Count up to this number OR
+	cpfsgt 	counter, A
+	bra 	loop		    ; Not yet finished goto start of loop again
+	return
+readWriteTest: 
+	call	writeMem1
+	call	writeMem2
+	call	readMem1
+	call	delay
+	call	readMem2
+	call	delay
 	return
 start:
 	call	setup
-	movlw	0xbb			; Move value to be written to external
+	movlw	0x0f			; Move value to be written to external
 	movwf	memWrite1, B		; memory 1 to variable memWrite1
-	call	writeMem1		; Write value to external memory 1
-	call	readMem1		; 
+	movlw	0xf0			; Move value to be written to external 
+   	movwf	memWrite2, B		; memory 2 to variable memWrite2
+
 
 test_loop:
-	
+;	call    incramentalCounter	; incraments up to memWrite1/2
+	call	readWriteTest		; swaps between memory 1 and 2
 	bra	test_loop
 	end	main
