@@ -43,15 +43,26 @@ delay2:
 setup: 
 	movlw 	0x0		    
 	movwf	TRISD, A	    ; Port D all outputs
+	movlw	0xff
+	movwf	PORTD, A
+;	bsf	PORTD, 0, A	    ; bit 0 = ct1
+;	bsf	PORTD, 1, A	    ; bit 1 = ct2
+;	bsf	PORTD, 2, A	    ; bit 2 = oe1
+;	bsf	PORTD, 3, A	    ; bit 3 = oe2
+				    ; all bits start on
+	movlw	0x0
+	movwf	TRISC, A
 	setf	TRISE, A
 	banksel	PADCFG1
 	bsf	REPU
 	movlb	0x00
-	bsf	PORTD, 0, A	    ; bit 0 = ct1
-	bsf	PORTD, 1, A	    ; bit 1 = ct2
-	bsf	PORTD, 2, A	    ; bit 2 = oe1
-	bsf	PORTD, 3, A	    ; bit 3 = oe2
-				    ; all bits start on
+	memWrite1	equ	0xA0
+	memWrite2	equ	0xA1
+	movlw	0xff
+	movwf	memWrite1, B
+	movlw	0xff
+	movwf	memWrite2, B
+
 	return
 clockPulse1: 
 	bcf	PORTD, 0, A
@@ -64,50 +75,56 @@ clockPulse2:
 	bsf	PORTD, 1, A
 	return
 readMem1:
-;	bsf	PORTD, 3, A		; OE2 high
 	bcf	PORTD, 2, A		; OE1 low
-	call	clockPulse1		; c1 pulse
 	call	wait
-;	bsf	PORTD, 2, A		; Reset OE1
-					; c2 nothing
+	call	wait
+	movf	LATE, W, A
+;	movlw	0xff
+	movwf	LATC, A
+	bsf	PORTD, 2, A		; Reset OE1
 	return
 readMem2: 
-;    	bsf	PORTD, 2, A		; OE1 high
 	bcf	PORTD, 3, A		; OE2 low
-	call	clockPulse2		; c2 pulse
+	call	wait
+	movf	PORTE, A
+	movwf	PORTC, A
 	bsf	PORTD, 3, A		; Reset OE2
-					; c1 nothing
 	return
 writeMem1: 
-;	bsf	PORTD, 2, A		; OE1 high
-;	bcf	PORTD, 3, A		; OE2 low
 	clrf	TRISE, A
-	movlw	0x0f
+	movf	memWrite1, B
 	movwf	LATE, A
 	call	clockPulse1		; c1 pulse
 	setf	TRISE, A
-;	bsf	PORTD, 3, A		; Reset OE2
-					; c2 nothing
 	return
 writeMem2: 
-;	bsf	PORTD, 3, A		; OE2 high
-;	bcf	PORTD, 2, A		; OE1 low
+	clrf	TRISE, A
+	movf	memWrite2, B
+	movwf	LATE, A
 	call	clockPulse2		; c2 pulse
-;	bsf	PORTD, 2, A		; Reset OE1
-					; c1 nothing
+	setf	TRISE, A
 	return
 start:
 	call	setup
 ;	call	readMem1
 ;	call	delay
-	call	writeMem1
-test_loop:
+	movlw	0xf0			; Move value to be written to external
+	movwf	memWrite1, B		; memory 1 to variable memWrite1
+	call	writeMem1		; Write value to external memory 1
+	call	readMem1
+;	bcf	PORTD, 2, A		; turn on output
 ;	call	readMem1
-	call	writeMem1
+test_loop:
+;    	bcf	PORTD, 2, A		; turn on output
+
+;    	call	writeMem1		; Write value to external memory 1
+;    	bcf	PORTD, 2, A		; OE1 low
+;	call	readMem1
+;	call	writeMem1
 ;	call	readMem1
 ;	call	delay
 ;	call	delay
 ;	call	readMem2
 ;	call	writeMem2
-	goto	test_loop
+	bra	test_loop
 	end	main
