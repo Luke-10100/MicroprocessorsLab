@@ -149,7 +149,7 @@ start:
 	movlw	0xf0			; Move value to be written to external 
    	movwf	memWrite2, B		; memory 2 to variable memWrite2
 
-
+;test for if new thing
 test_loop:
 ;	call    incramentalCounter	; incraments up to memWrite1/2
 	call	readWriteTest		; swaps between memory 1 and 2
