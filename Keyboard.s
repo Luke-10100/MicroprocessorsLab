@@ -1,8 +1,9 @@
 #include <xc.inc>
-    
+
+global  Check_key_press
+
 extrn	LCD_delay_ms, LCD_delay_x4us
 
-global  check_key_press
 
 psect	udata_acs   ; reserve data space in access ram
 UART_counter: ds    1	    ; reserve 1 byte for variable UART_counter
@@ -39,7 +40,8 @@ solTable:
 	solTable_1   EQU	17	; length of data
 	align	2
 	
-psect	uart_code,class=CODE
+psect	keyboard_code,class=CODE
+	
 Keyboard_Setup:
     bsf	    PADCFG1, REPU, B
     clrf    LATE
@@ -200,7 +202,7 @@ not_sol_F:
     retlw   0xff
     
 ;    routine to be called
-check_key_press: 
+Check_key_press: 
     call solution_setup
 wait_button:
     call Keyboard_Setup
