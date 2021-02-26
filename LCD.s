@@ -1,6 +1,6 @@
 #include <xc.inc>
 
-global  LCD_Setup, LCD_Write_Message
+global  LCD_Setup, LCD_Write_Message, LCD_clear, LCD_delay_ms, LCD_shiftLine, LCD_moveCurser
 
 psect	udata_acs   ; named variables in access ram
 LCD_cnt_l:	ds 1   ; reserve 1 byte for variable LCD_cnt_l
@@ -132,7 +132,35 @@ lcdlp1:	decf 	LCD_cnt_l, F, A	; no carry when 0x00 -> 0xff
 	bc 	lcdlp1		; carry, then loop again
 	return			; carry reset so return
 
+LCD_clear:
+	movlw	00000001B
+	call	LCD_Send_Byte_I
+	movlw	2
+	call	LCD_delay_ms
+	return
+	
+LCD_shiftLine:			; number of lines to shift in w reg
+	movwf	LCD_counter, A
+shift_loop:
+	movlw	00011100B
+	call	LCD_Send_Byte_I
+	movlw	10		; wait 40us
+	call	LCD_delay_x4us
+	decfsz  LCD_counter, A
+	bra	shift_loop
+	return
 
+LCD_moveCurser:
+	movlw	40
+	movwf	LCD_counter, A
+curserLoop:
+	movlw	00010100B
+	call	LCD_Send_Byte_I
+	movlw	10		; wait 40us
+	call	LCD_delay_x4us
+	decfsz  LCD_counter, A
+	bra	curserLoop
+	return
     end
 
 
