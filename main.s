@@ -1,7 +1,7 @@
 #include <xc.inc>
 
 extrn	UART_Setup, UART_Transmit_Message  ; external subroutines
-extrn	LCD_Setup, LCD_Write_Message, LCD_clear, LCD_delay_ms, LCD_shiftLine, LCD_moveCurser
+extrn	LCD_Setup, LCD_Write_Message, LCD_clear, LCD_delay_ms, LCD_shiftLine, LCD_moveCurser, LCD_Write_Program_Message
 	
 psect	udata_acs   ; reserve data space in access ram
 counter:    ds 1    ; reserve one byte for a counter variable
@@ -27,14 +27,15 @@ setup:	bcf	CFGS	; point to Flash program memory
 	bsf	EEPGD 	; access Flash program memory
 	call	UART_Setup	; setup UART
 	call	LCD_Setup	; setup LCD
+	movlw	0xFF
+	movwf	TRISD, A
 	goto	start
 	
-	; ******* Main programme ****************************************
-start: 	lfsr	0, myArray	; Load FSR0 with address in RAM	
+read_data_RAM_setup:lfsr	0, myArray	; Load FSR0 with address in RAM	
 	movlw	low highword(myTable)	; address of data in PM
 	movwf	TBLPTRU, A		; load upper bits to TBLPTRU
 	movlw	high(myTable)	; address of data in PM
-	movwf	TBLPTRH, A		; load high byte to TBLPTRH
+	movwf	TBLPTRH, A		; \load high byte to TBLPTRH
 	movlw	low(myTable)	; address of data in PM
 	movwf	TBLPTRL, A		; load low byte to TBLPTRL
 	movlw	myTable_l	; bytes to read
@@ -43,17 +44,40 @@ loop: 	tblrd*+			; one byte from PM to TABLAT, increment TBLPRT
 	movff	TABLAT, POSTINC0; move data from TABLAT to (FSR0), inc FSR0	
 	decfsz	counter, A		; count down to zero
 	bra	loop		; keep going until finished
-		
+	return
+
+write_data_RAM:
 	movlw	myTable_l	; output message to UART
 	lfsr	2, myArray
 	call	UART_Transmit_Message
-
-output_LCD:
-	call	LCD_moveCurser	; moves curser to 2nd line
 	movlw	myTable_l	; output message to LCD
 	addlw	0xff		; don't send the final carriage return to LCD
 	lfsr	2, myArray	
+	movlw	myTable_l
+	addlw	0xff		; don't send the final carriage return to LCD
 	call	LCD_Write_Message
+	return
+	
+write_data_PM:
+	movlw	low highword(myTable)	; address of data in PM
+	movwf	TBLPTRU, A		; load upper bits to TBLPTRU
+	movlw	high(myTable)	; address of data in PM
+	movwf	TBLPTRH, A		; \load high byte to TBLPTRH
+	movlw	low(myTable)	; address of data in PM
+	movwf	TBLPTRL, A		; load low byte to TBLPTRL
+	movlw	myTable_l
+	addlw	0xff
+	call	LCD_Write_Program_Message
+	return
+	
+	; ******* Main programme ****************************************
+start: 	
+	movlw	0x04
+	cpfslt	PORTD, A
+    	call	LCD_moveCurser	; moves curser to 2nd line
+	call	read_data_RAM_setup ; reads data from progra memory to RAM
+	call	write_data_RAM	; writes data from RAM to LCD
+;	call	write_data_PM	; writes data from PM to LCD
 	
 	movlw	0xff		; 500ms delay
 	call	LCD_delay_ms
@@ -67,7 +91,7 @@ output_LCD:
 	movlw	0xff
 	call	LCD_delay_ms
 	
-	bra	output_LCD	; loop
+	bra	start	; loop
 ;	call	LCD_shiftLine
 	goto	$		; goto current line in code
 
