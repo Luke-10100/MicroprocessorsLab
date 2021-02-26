@@ -1,11 +1,13 @@
 #include <xc.inc>
 ;test if new
 extrn	UART_Setup, UART_Transmit_Message  ; external subroutines
-extrn	LCD_Setup, LCD_Write_Message, LCD_clear, LCD_delay_ms, LCD_shiftLine, LCD_moveCurser, LCD_Write_Program_Message
-	
+extrn	LCD_Setup, LCD_Write_Message, LCD_Send_Byte_D, LCD_clear, LCD_delay_ms, LCD_shiftLine, LCD_moveCurser, LCD_Write_Program_Message
+extrn	Check_key_press
+    
 psect	udata_acs   ; reserve data space in access ram
 counter:    ds 1    ; reserve one byte for a counter variable
 delay_count:ds 1    ; reserve one byte for counter in the delay routine
+input_byte: ds 1
     
 psect	udata_bank4 ; reserve data anywhere in RAM (here at 0x400)
 myArray:    ds 0x80 ; reserve 128 bytes for message data
@@ -72,11 +74,20 @@ write_data_PM:
 	
 	; ******* Main programme ****************************************
 start: 	
-	movlw	0x04
-	cpfslt	PORTD, A
-    	call	LCD_moveCurser	; moves curser to 2nd line
-	call	read_data_RAM_setup ; reads data from progra memory to RAM
-	call	write_data_RAM	; writes data from RAM to LCD
+	call	check_key_press
+	movwf	input_byte, A
+	movlw	0xff
+	cpfseq	input_byte, A
+	bra	no_error
+	bra	start
+no_error:
+	movf	input_byte, W, A
+	call	LCD_Send_Byte_D
+;	movlw	0x04
+;	cpfslt	PORTD, A
+;    	call	LCD_moveCurser	; moves curser to 2nd line
+;	call	read_data_RAM_setup ; reads data from progra memory to RAM
+;	call	write_data_RAM	; writes data from RAM to LCD
 ;	call	write_data_PM	; writes data from PM to LCD
 	
 	movlw	0xff		; 500ms delay
