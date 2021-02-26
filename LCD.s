@@ -1,6 +1,6 @@
 #include <xc.inc>
 
-global  LCD_Setup, LCD_Write_Message, LCD_clear, LCD_delay_ms, LCD_shiftLine, LCD_moveCurser
+global  LCD_Setup, LCD_Write_Message, LCD_clear, LCD_delay_ms, LCD_shiftLine, LCD_moveCurser, LCD_Write_Program_Message
 
 psect	udata_acs   ; named variables in access ram
 LCD_cnt_l:	ds 1   ; reserve 1 byte for variable LCD_cnt_l
@@ -55,6 +55,15 @@ LCD_Loop_message:
 	bra	LCD_Loop_message
 	return
 
+LCD_Write_Program_Message:  ; Message stored in TBLT, length stored in W
+	movwf	LCD_counter, A
+loop_PM: tblrd*+			; one byte from PM to TABLAT, increment TBLPRT
+	movf	TABLAT, W, A		; move data from TABLAT to W
+	call	LCD_Send_Byte_D		; send byte
+	decfsz	LCD_counter, A		; count down to zero
+	bra	loop_PM		; keep going until finished
+	return
+    
 LCD_Send_Byte_I:	    ; Transmits byte stored in W to instruction reg
 	movwf   LCD_tmp, A
 	swapf   LCD_tmp, W, A   ; swap nibbles, high nibble goes first
