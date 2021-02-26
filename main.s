@@ -74,7 +74,8 @@ write_data_PM:
 	
 	; ******* Main programme ****************************************
 start: 	
-	call	check_key_press
+	call	Check_key_press
+	movlw	0x45
 	movwf	input_byte, A
 	movlw	0xff
 	cpfseq	input_byte, A
