@@ -12,12 +12,20 @@ input_byte: ds 1
 psect	udata_bank4 ; reserve data anywhere in RAM (here at 0x400)
 myArray:    ds 0x80 ; reserve 128 bytes for message data
 
+psect	udata_bank6
+errArray:   ds 0x80
+
 psect	data    
 	; ******* myTable, data in programme memory, and its length *****
 myTable:
 	db	'H','e','l','l','o',' ','W','o','r','l','d','!',0x0a
 					; message, plus carriage return
 	myTable_l   EQU	13	; length of data
+	align	2
+
+errorTable:
+	db	'E','r','r','o','r',0x0a
+	errorTable_1	equ 6
 	align	2
     
 psect	code, abs	
@@ -71,15 +79,33 @@ write_data_PM:
 	addlw	0xff
 	call	LCD_Write_Program_Message
 	return
-	
+
+write_error_PM:
+	movlw	low highword(errorTable)	; address of data in PM
+	movwf	TBLPTRU, A		; load upper bits to TBLPTRU
+	movlw	high(errorTable)	; address of data in PM
+	movwf	TBLPTRH, A		; \load high byte to TBLPTRH
+	movlw	low(errorTable)	; address of data in PM
+	movwf	TBLPTRL, A		; load low byte to TBLPTRL
+	movlw	errorTable_1
+	addlw	0xff
+	call	LCD_Write_Program_Message
+	movlw	0xff		; 500ms delay
+	call	LCD_delay_ms
+	movlw	0xff
+	call	LCD_delay_ms
+	call	LCD_clear	; clear display
+	return
+
 	; ******* Main programme ****************************************
 start: 	
 	call	Check_key_press
-	movlw	0x45
+;	movlw	0x45
 	movwf	input_byte, A
 	movlw	0xff
 	cpfseq	input_byte, A
 	bra	no_error
+	call	write_error_PM
 	bra	start
 no_error:
 	movf	input_byte, W, A
