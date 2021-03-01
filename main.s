@@ -71,9 +71,9 @@ write_data_RAM:
 write_data_PM:
 	movlw	low highword(myTable)	; address of data in PM
 	movwf	TBLPTRU, A		; load upper bits to TBLPTRU
-	movlw	high(myTable)	; address of data in PM
+	movlw	high(myTable)		; address of data in PM
 	movwf	TBLPTRH, A		; \load high byte to TBLPTRH
-	movlw	low(myTable)	; address of data in PM
+	movlw	low(myTable)		; address of data in PM
 	movwf	TBLPTRL, A		; load low byte to TBLPTRL
 	movlw	myTable_l
 	addlw	0xff
@@ -81,56 +81,78 @@ write_data_PM:
 	return
 
 write_error_PM:
-	movlw	low highword(errorTable)	; address of data in PM
-	movwf	TBLPTRU, A		; load upper bits to TBLPTRU
-	movlw	high(errorTable)	; address of data in PM
-	movwf	TBLPTRH, A		; \load high byte to TBLPTRH
-	movlw	low(errorTable)	; address of data in PM
-	movwf	TBLPTRL, A		; load low byte to TBLPTRL
+	movlw	low highword(errorTable)    ; address of data in PM
+	movwf	TBLPTRU, A		    ; load upper bits to TBLPTRU
+	movlw	high(errorTable)	    ; address of data in PM
+	movwf	TBLPTRH, A		    ; \load high byte to TBLPTRH
+	movlw	low(errorTable)		    ; address of data in PM
+	movwf	TBLPTRL, A		    ; load low byte to TBLPTRL
 	movlw	errorTable_1
 	addlw	0xff
 	call	LCD_Write_Program_Message
-	movlw	0xff		; 500ms delay
+	movlw	0xff			    ; 500ms delay
 	call	LCD_delay_ms
 	movlw	0xff
 	call	LCD_delay_ms
-	call	LCD_clear	; clear display
+	call	LCD_clear		    ; clear display
 	return
 
+keyboard_input:	;waits for a keyboard input then displays & puts in w ASCII code
+	call	Check_key_press	    ; loops until a key is pressed
+;	movlw	0x45
+	movwf	input_byte, A	    ; puts key press into input_byte
+	movlw	0xff
+	cpfseq	input_byte, A	    ; if input = 0xff then invalid key press
+	bra	no_error	    ; continue if no error
+	call	write_error_PM	    ; print error msg
+	bra	keyboard_input	    ; restart
+no_error:
+	movlw	0x43		    ; 0x43 is the asci char C
+	cpfseq	input_byte, A	    ; if input char is C then clear display
+	bra	display_char	    ; not C so show char
+	call	LCD_clear	    ; clear display
+	bra	wait_display	    ; branch to wait to give the user time to see
+display_char:
+	movf	input_byte, W, A    ; but asci in w
+	call	LCD_Send_Byte_D	    ; output char to display
+	
+wait_display:
+    	movlw	0xff		    ; 1s delay
+	call	LCD_delay_ms
+	movlw	0xff
+	call	LCD_delay_ms
+	movlw	0xff		
+	call	LCD_delay_ms
+	movlw	0xff
+	call	LCD_delay_ms
+	movf	input_byte, W, A    ; return input_byte in w if needed 
+	return
+	
 	; ******* Main programme ****************************************
 start: 	
-	call	Check_key_press
-;	movlw	0x45
-	movwf	input_byte, A
-	movlw	0xff
-	cpfseq	input_byte, A
-	bra	no_error
-	call	write_error_PM
-	bra	start
-no_error:
-	movf	input_byte, W, A
-	call	LCD_Send_Byte_D
-;	movlw	0x04
-;	cpfslt	PORTD, A
-;    	call	LCD_moveCurser	; moves curser to 2nd line
-;	call	read_data_RAM_setup ; reads data from progra memory to RAM
-;	call	write_data_RAM	; writes data from RAM to LCD
-;	call	write_data_PM	; writes data from PM to LCD
-	
-	movlw	0xff		; 500ms delay
-	call	LCD_delay_ms
-	movlw	0xff
-	call	LCD_delay_ms
-	
-	call	LCD_clear	; clear display
-	
-	movlw	0xff		; 500ms delay
-	call	LCD_delay_ms
-	movlw	0xff
-	call	LCD_delay_ms
+	call	keyboard_input
+
+;;	movlw	0x04
+;;	cpfslt	PORTD, A
+;;    	call	LCD_moveCurser	; moves curser to 2nd line
+;;	call	read_data_RAM_setup ; reads data from progra memory to RAM
+;;	call	write_data_RAM	; writes data from RAM to LCD
+;;	call	write_data_PM	; writes data from PM to LCD
+;	
+;	movlw	0xff		; 500ms delay
+;	call	LCD_delay_ms
+;	movlw	0xff
+;	call	LCD_delay_ms
+;	
+;;	call	LCD_clear	; clear display
+;wait_display:
+;	movlw	0xff		; 500ms delay
+;	call	LCD_delay_ms
+;	movlw	0xff
+;	call	LCD_delay_ms
 	
 	bra	start	; loop
-;	call	LCD_shiftLine
+
 	goto	$		; goto current line in code
 
 	; a delay subroutine if you need one, times around loop in delay_count
