@@ -4,12 +4,14 @@ extrn	UART_Setup, UART_Transmit_Message  ; external subroutines
 extrn	LCD_Setup, LCD_Write_Message, LCD_Write_Hex, LCD_Send_Byte_D, LCD_clear, LCD_delay_ms, LCD_shiftLine, LCD_moveCurser, LCD_Write_Program_Message
 extrn	Check_key_press
 extrn	ADC_Setup, ADC_Read		   ; external ADC subroutines
-extrn	mult_test
+extrn	mult_test, convert_hex_to_bin, bit_16_low, bit_16_high, digit_1, digit_2, digit_3, digit_4
     
 psect	udata_acs   ; reserve data space in access ram
 counter:    ds 1    ; reserve one byte for a counter variable
 delay_count:ds 1    ; reserve one byte for counter in the delay routine
 input_byte: ds 1
+decimal_1:  ds 1
+decimal_2:  ds 1
     
 psect	udata_bank4 ; reserve data anywhere in RAM (here at 0x400)
 myArray:    ds 0x80 ; reserve 128 bytes for message data
@@ -138,7 +140,35 @@ measure_loop:
 	movf	ADRESL, W, A
 	call	LCD_Write_Hex
 	return		; goto current line in code
+
+measure_loop_decimal:
+	call	ADC_Read
+	movf	ADRESH, W, A
+	movwf	bit_16_high, A
+
+	movf	ADRESL, W, A
+	movwf	bit_16_low, A	 ; input value, here 0x042D
+	call	convert_hex_to_bin
 	
+	rrncf	digit_1, F, A
+	rrncf	digit_1, F, A
+	rrncf	digit_1, F, A
+	rrncf	digit_1, F, A
+	movf	digit_1, W, A
+	iorwf	digit_2, W, A
+	
+	call	LCD_Write_Hex
+	
+	rrncf	digit_3, F, A
+	rrncf	digit_3, F, A
+	rrncf	digit_3, F, A
+	rrncf	digit_3, F, A
+	movf	digit_3, W, A
+	iorwf	digit_4, W, A
+	
+	call	LCD_Write_Hex
+	
+	return		; goto current line in code
 
 	; ******* Main programme ****************************************
 start: 	
@@ -152,9 +182,17 @@ start:
 ;	call	keyboard_input
 ;	movlw	0x01
 ;	call	measure_loop
-    
-	call	mult_test
-	
+	call	measure_loop_decimal
+;	call	mult_test
+;        movlw	0x04
+;	movwf	bit_16_high, A
+;	movlw	0xD2
+;	movwf	bit_16_low, A	 ; input value, here 0x042D
+;	call	convert_hex_to_bin
+;	movf	digit_1, W, A
+;	movf	digit_2, W, A
+;	movf	digit_3, W, A
+;	movf	digit_4, W, A
 ;;	movlw	0x04
 ;;	cpfslt	PORTD, A
 ;;    	call	LCD_moveCurser	; moves curser to 2nd line
