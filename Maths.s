@@ -189,11 +189,11 @@ convert_hex_to_bin:
 ;    movlw	0xD2
 ;    movwf	bit_16_low, A	 ; input value, here 0x042D
     
-    call	mult_16_x_16
-    movf	bit_32_upper, W, A
-    movwf	digit_1, A	 
+    call	mult_16_x_16		; k * input digit
+    movf	bit_32_upper, W, A	
+    movwf	digit_1, A		; first digit output
     
-    movf	bit_32_umiddle, W, A
+    movf	bit_32_umiddle, W, A	; remainder * 0x0A
     movwf	bit_24_3, A
     movf	bit_32_lmiddle, W, A
     movwf	bit_24_2, A
@@ -204,9 +204,9 @@ convert_hex_to_bin:
     call	mult_8_x_24
     
     movf	bit_32_upper, W, A
-    movwf	digit_2, A
+    movwf	digit_2, A		; first digit output
     
-    movf	bit_32_umiddle, W, A
+    movf	bit_32_umiddle, W, A	; remainder * 0x0A
     movwf	bit_24_3, A
     movf	bit_32_lmiddle, W, A
     movwf	bit_24_2, A
@@ -216,10 +216,10 @@ convert_hex_to_bin:
     movwf	bit_8, A		; n = 10
     call	mult_8_x_24
     
-    movf	bit_32_upper, W, A
+    movf	bit_32_upper, W, A	; output first digit
     movwf	digit_3, A
     
-    movf	bit_32_umiddle, W, A
+    movf	bit_32_umiddle, W, A	; remainder * 0x0A
     movwf	bit_24_3, A
     movf	bit_32_lmiddle, W, A
     movwf	bit_24_2, A
@@ -230,10 +230,6 @@ convert_hex_to_bin:
     call	mult_8_x_24
     
     movf	bit_32_upper, W, A
-    movwf	digit_4, A
+    movwf	digit_4, A		; output 4th digit
     
-;    movf	digit_1, W, A
-;    movf	digit_2, W, A
-;    movf	digit_3, W, A
-;    movf	digit_4, W, A
     return
