@@ -144,31 +144,32 @@ measure_loop:
 measure_loop_decimal:
 	call	ADC_Read
 	movf	ADRESH, W, A
-	movwf	bit_16_high, A
+	movwf	bit_16_high, A	    ; input value high byte from ADC
 
 	movf	ADRESL, W, A
-	movwf	bit_16_low, A	 ; input value, here 0x042D
-	call	convert_hex_to_bin
+	movwf	bit_16_low, A	    ; input value low byte from ADC
+	
+	call	convert_hex_to_bin  ; convert from hex to binary
 	
 	rrncf	digit_1, F, A
 	rrncf	digit_1, F, A
 	rrncf	digit_1, F, A
-	rrncf	digit_1, F, A
-	movf	digit_1, W, A
-	iorwf	digit_2, W, A
+	rrncf	digit_1, F, A	    ; rotate the 1st digit from 01 --> 10
+	movf	digit_1, W, A	    
+	iorwf	digit_2, W, A	    ; or with second digit 10, 02 --> 12
 	
-	call	LCD_Write_Hex
+	call	LCD_Write_Hex	    ; write values to LCD
 	
 	rrncf	digit_3, F, A
 	rrncf	digit_3, F, A
 	rrncf	digit_3, F, A
-	rrncf	digit_3, F, A
+	rrncf	digit_3, F, A	    ; rotate the 3rd digit from 03 --> 30
 	movf	digit_3, W, A
-	iorwf	digit_4, W, A
+	iorwf	digit_4, W, A	    ; or with 4th digit, 30, 04 --> 34
 	
-	call	LCD_Write_Hex
+	call	LCD_Write_Hex	    ; write value to LCD
 	
-	return		; goto current line in code
+	return
 
 	; ******* Main programme ****************************************
 start: 	
