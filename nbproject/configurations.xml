@@ -19,6 +19,7 @@
       <itemPath>Keyboard.s</itemPath>
       <itemPath>Maths.s</itemPath>
       <itemPath>ADC.s</itemPath>
+      <itemPath>GLCD.s</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
