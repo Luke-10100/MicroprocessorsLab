@@ -5,6 +5,7 @@ extrn	LCD_Setup, LCD_Write_Message, LCD_Write_Hex, LCD_Send_Byte_D, LCD_clear, L
 extrn	Check_key_press
 extrn	ADC_Setup, ADC_Read		   ; external ADC subroutines
 extrn	mult_test, convert_hex_to_bin, bit_16_low, bit_16_high, digit_1, digit_2, digit_3, digit_4
+extrn	GLCD_Setup, GLCD_Test_Write, GLCD_Reset, GLCD_X, GLCD_Y
     
 psect	udata_acs   ; reserve data space in access ram
 counter:    ds 1    ; reserve one byte for a counter variable
@@ -40,10 +41,11 @@ rst: 	org	0x0
 setup:	bcf	CFGS	; point to Flash program memory  
 	bsf	EEPGD 	; access Flash program memory
 	call	UART_Setup	; setup UART
-	call	LCD_Setup	; setup LCD
+;	call	LCD_Setup	; setup LCD
+	call	GLCD_Setup
 	call	ADC_Setup	; setup ADC
-	movlw	0xFF
-	movwf	TRISD, A
+;	movlw	0xFF
+;	movwf	TRISD, A
 	goto start
 	
 read_data_RAM_setup:lfsr	0, myArray	; Load FSR0 with address in RAM	
@@ -173,6 +175,20 @@ measure_loop_decimal:
 
 	; ******* Main programme ****************************************
 start: 	
+	movlw	0x00
+	movwf	GLCD_X, A
+	movlw	0x00
+	movwf	GLCD_Y, A
+	movlw   0x0F
+	call    GLCD_Test_Write
+	
+	
+	
+	movlw	0xff		; 500ms delay
+	call	LCD_delay_ms
+	movlw	0xff
+	call	LCD_delay_ms
+
 ;	bcf	CFGS	; point to Flash program memory  
 ;	bsf	EEPGD 	; access Flash program memory
 ;	call	UART_Setup	; setup UART
@@ -183,9 +199,9 @@ start:
 ;	call	keyboard_input
 ;	movlw	0x01
 ;	call	measure_loop
-	call	measure_loop_decimal
+;	call	measure_loop_decimal
 ;	call	mult_test
-;        movlw	0x04
+;       movlw	0x04
 ;	movwf	bit_16_high, A
 ;	movlw	0xD2
 ;	movwf	bit_16_low, A	 ; input value, here 0x042D
